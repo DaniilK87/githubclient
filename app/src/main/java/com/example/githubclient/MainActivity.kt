@@ -3,41 +3,53 @@ package com.example.githubclient
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.Log
 import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.githubclient.model.users.GithubUsersRepo
+import com.example.githubclient.navigation.Screens
 import com.example.githubclient.presenter.MainPresenter
+import com.example.githubclient.ui.BackButtonListener
+import com.example.githubclient.ui.UsersFragment
+import com.example.githubclient.ui.UsersRVAdapter
 import com.example.githubclient.view.MainView
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_users.*
+import moxy.MvpAppCompatActivity
+import moxy.ktx.moxyPresenter
+import ru.terrakok.cicerone.Screen
+import ru.terrakok.cicerone.android.support.SupportAppNavigator
 
-class MainActivity : AppCompatActivity(), MainView {
+class MainActivity: MvpAppCompatActivity(), MainView {
 
-    val presenter = MainPresenter(this)
+    val navigatorHolder = App.instance.navigatorHolder
+    val navigator = SupportAppNavigator(this, supportFragmentManager, R.id.container)
+
+    private val presenter: MainPresenter by moxyPresenter {MainPresenter(App.instance.router)}
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        super.onCreate(savedInstanceState )
         setContentView(R.layout.activity_main)
-
-        val listener1 = View.OnClickListener {
-            presenter.counterClick1(R.id.btn_counter1)
-        }
-
-        val listener2 = View.OnClickListener {
-            presenter.counterClick2(R.id.btn_counter2)
-        }
-
-        val listener3 = View.OnClickListener {
-            presenter.counterClick3(R.id.btn_counter3)
-        }
-
-        btn_counter1.setOnClickListener(listener1)
-        btn_counter2.setOnClickListener(listener2)
-        btn_counter3.setOnClickListener(listener3)
     }
 
-    override fun setButtonText (index: Int, text: String) {
-        when (index){
-            0 -> btn_counter1.text = text
-            1 -> btn_counter2.text = text
-            2 -> btn_counter3.text = text
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        navigatorHolder.setNavigator(navigator)
+    }
+
+
+    override fun onPause() {
+        super.onPause()
+        navigatorHolder.removeNavigator()
+    }
+
+    override fun onBackPressed() {
+        supportFragmentManager.fragments.forEach {
+            if (it is BackButtonListener && it.backPressed()) {
+                return
+            }
         }
+        presenter.backClicked()
     }
 }
