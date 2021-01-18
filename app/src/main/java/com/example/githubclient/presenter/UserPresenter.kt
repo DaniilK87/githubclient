@@ -1,59 +1,52 @@
 package com.example.githubclient.presenter
 
-import android.content.Context
-import android.widget.Toast
+
 import com.example.githubclient.model.users.GithubUser
 import com.example.githubclient.model.users.GithubUsersRepo
 import com.example.githubclient.navigation.Screens
 import com.example.githubclient.view.UserItemView
 import com.example.githubclient.view.UsersView
+import io.reactivex.Observer
+import io.reactivex.disposables.Disposable
 import moxy.MvpPresenter
 import ru.terrakok.cicerone.Router
-import ru.terrakok.cicerone.Screen
-import rx.Observer
+
 
 class UsersPresenter (val repo: GithubUsersRepo, val router: Router) :
-    MvpPresenter<UsersView>(), IUserListPresenter {
+    MvpPresenter<UsersView>() {
 
     val userObserver = object : Observer<GithubUser> {
+        var disposable: Disposable? = null
 
-        override fun onCompleted() {
-            println("onCompleted")
-        }
 
-        override fun onError(e: Throwable?) {
+        override fun onError(e: Throwable) {
             println("onError: $e")
         }
 
-        override fun onNext(t: GithubUser?) {
+        override fun onNext(t: GithubUser) {
             println("onNext: $t")
         }
+
+        override fun onComplete() {
+            println("onCompleted")
+        }
+
+        override fun onSubscribe(d: Disposable) {
+             disposable = d
+            println("onSubscribe")
+        }
+
     }
 
     fun getUser() {
         repo.getUsers().subscribe(userObserver)
     }
 
-    var users = mutableListOf<GithubUser>()
-
-    override var itemClickListener: ((UserItemView) -> Unit)? = null
 
 
-    override fun bindView(view: UserItemView) {
-        val user = users[view.pos]
-        view.setLogin(user.login)
-    }
-
-    override fun getCount() = users.size
-}
-
-
-
-
-    /*class UsersListPresenter(val usersPresenter: UsersPresenter) : IUserListPresenter {
+    class UsersListPresenter : IUserListPresenter {
 
         var users = mutableListOf<GithubUser>()
-
 
         override var itemClickListener: ((UserItemView) -> Unit)? = null
 
@@ -76,8 +69,7 @@ class UsersPresenter (val repo: GithubUsersRepo, val router: Router) :
     }
 
     fun loadData() {
-        //val users = getUser()
-        usersListPresenter.users.getUser()
+        usersListPresenter.users.addAll(getUser())
         viewState.updateList()
     }
 
@@ -85,4 +77,4 @@ class UsersPresenter (val repo: GithubUsersRepo, val router: Router) :
         router.exit()
         return true
     }
-}*/
+}
