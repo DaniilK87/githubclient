@@ -6,7 +6,9 @@ import moxy.viewstate.strategy.StateStrategyType
 import moxy.viewstate.strategy.alias.AddToEndSingle
 
 @StateStrategyType(AddToEndSingleStrategy::class)
-interface UsersView: MvpView {
-    fun init ()
-    fun updateList ()
+interface RepoView: MvpView {
+    fun setId(text: String)
+    fun setTitle(text: String)
+    fun setForksCount(text: String)
+    fun init()
 }

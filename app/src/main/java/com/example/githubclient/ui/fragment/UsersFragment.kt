@@ -5,12 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.githubclient.ApiHolder
 import com.example.githubclient.App
 import com.example.githubclient.R
-import com.example.githubclient.model.users.GithubUsersRepo
+import com.example.githubclient.model.RetrofitGithubUsers
 import com.example.githubclient.presenter.UsersPresenter
 import com.example.githubclient.view.UsersView
+import com.example.githubclient.view.image.GlideImageLoader
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.fragment_users.*
 import moxy.MvpAppCompatFragment
 import moxy.ktx.moxyPresenter
@@ -21,7 +23,8 @@ class UsersFragment: MvpAppCompatFragment(), UsersView, BackButtonListener {
         fun newInstance() = UsersFragment()
     }
 
-    val presenter: UsersPresenter by moxyPresenter {UsersPresenter(GithubUsersRepo(), App.instance.router) }
+    val presenter: UsersPresenter by moxyPresenter {UsersPresenter(AndroidSchedulers.mainThread(),
+        RetrofitGithubUsers(ApiHolder.api), App.instance.router) }
     var adapter: UsersRVAdapter? = null
 
 

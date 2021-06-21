@@ -1,53 +1,59 @@
 package com.example.githubclient.presenter
 
-import android.annotation.SuppressLint
+import com.example.githubclient.model.IGithubRepo
+import com.example.githubclient.model.entity.GithubRepo
 import com.example.githubclient.model.users.GithubUser
-import com.example.githubclient.model.users.GithubUsersRepo
 import com.example.githubclient.navigation.Screens
-import com.example.githubclient.view.UserItemView
-import com.example.githubclient.view.UsersView
+import com.example.githubclient.presenter.list.IRepoListPresenter
+import com.example.githubclient.presenter.list.IUserListPresenter
+import com.example.githubclient.view.UserView
+import com.example.githubclient.view.list.RepoItemView
+import com.example.githubclient.view.list.UserItemView
+import io.reactivex.rxjava3.core.Scheduler
 import moxy.MvpPresenter
 import ru.terrakok.cicerone.Router
 
-class UsersPresenter (val repo: GithubUsersRepo, val router: Router) :
-    MvpPresenter<UsersView>() {
+class UserPresenter (val repo: IGithubRepo,val user: GithubUser, val uiScheduler: Scheduler, val router: Router): MvpPresenter<UserView>() {
+
+    class RepoListPresenter: IRepoListPresenter{
+        val  repo = mutableListOf<GithubRepo>()
+        override var itemClickListener: ((RepoItemView) -> Unit)? = null
 
 
-    class UsersListPresenter : IUserListPresenter {
-
-        val users = mutableListOf<GithubUser>()
-
-
-        override var itemClickListener: ((UserItemView) -> Unit)? = null
-
-        override fun getCount() = users.size
-
-        override fun bindView(view: UserItemView) {
-            val user = users[view.pos]
-            view.setLogin(user.login)
+        override fun bindView(view: RepoItemView) {
+            val repos = repo[view.pos]
+            repos.name?.let { view.setLogin(it) }
         }
+
+        override fun getCount()= repo.size
     }
 
-    val usersListPresenter = UsersListPresenter()
+    val repoListPresenter = RepoListPresenter()
+
+
     override fun onFirstViewAttach() {
         super.onFirstViewAttach()
         viewState.init()
         loadData()
-        usersListPresenter.itemClickListener = { itemView ->
-            router.navigateTo(Screens.UserLoginScreen(usersListPresenter.users[itemView.pos]))
+
+        repoListPresenter.itemClickListener = {repoItemView ->
+            val repos = repoListPresenter.repo[repoItemView.pos]
         }
     }
 
-    @SuppressLint("CheckResult")
+
     fun loadData() {
-        repo.getUsers().subscribe{ repos ->
-          usersListPresenter.users.addAll(listOf(repos))
-            viewState.updateList()
+            repo.getRepo(user)?.observeOn(uiScheduler)?.subscribe({ repo ->
+                repoListPresenter.repo.clear()
+                repoListPresenter.repo.addAll(repo)
+                viewState.updateList()
+            }, {e -> println("Error: $e")})
         }
-    }
+
 
     fun backPressed(): Boolean {
         router.exit()
         return true
     }
+
 }

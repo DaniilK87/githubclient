@@ -5,8 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.githubclient.R
-import com.example.githubclient.presenter.IUserListPresenter
-import com.example.githubclient.view.UserItemView
+import com.example.githubclient.presenter.list.IUserListPresenter
+import com.example.githubclient.view.list.UserItemView
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_users.view.*
 
@@ -31,9 +31,10 @@ class UsersRVAdapter(val presenter: IUserListPresenter):
         RecyclerView.ViewHolder(containerView), LayoutContainer, UserItemView {
         override var pos = - 1
 
-        override fun setLogin(text: String) = with(containerView) {
-            tv_login.text = text
+        override fun setName(text: String) = with(containerView) {
+            tv_name.text = text
         }
+
 
     }
 }
